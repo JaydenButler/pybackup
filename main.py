@@ -56,6 +56,8 @@ if __name__ == "__main__":
         if key == 'backups':
             continue
 
+        print(f"Starting backup for {key}...") 
+
         path = os.path.abspath(value["path"])
         
         files = []
@@ -63,7 +65,6 @@ if __name__ == "__main__":
             files.append(os.path.join(path, file))
 
         docker = False
-
         if 'docker' in value and value['docker']:
            docker = True 
 
@@ -72,11 +73,16 @@ if __name__ == "__main__":
         
         if docker:
             os.system(f"docker compose -f {path}/docker-compose.yml down")
-        
+
+        print(f"Creating tar file for {key}...")
         tar_file = create_tar_file(tar_name, files)
+        print(f"Tar file for {key} created")
 
         if docker:
             os.system(f"docker compose -f {path}/docker-compose.yml up -d")
 
+        print(f"Backup for {key} completed")
 
-        cleanup_backups(config['backups']['path'], retention_count)
+    print("Cleaning up backups...")
+    cleanup_backups(config['backups']['path'], retention_count)
+    print("Backups cleaned up")
