@@ -9,6 +9,11 @@ def load_config():
     
     return config
 
+def log(message, log_path):
+    print(message)
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write(message + "\n")
+
 def create_tar_file(finalPath, files):
     with tarfile.open(finalPath, "w:gz") as tar:
         if len(files) == 1 and "*" in files[0]:
@@ -45,7 +50,12 @@ if __name__ == "__main__":
     if 'backups' not in config:
         print("'backups' section not found in config.toml")
         exit(1)
+    
+    if 'path' not in config['backups']:
+        print(f"Backup path not found in config.toml")
+        exit(1)
 
+    log_path = os.path.join(config["backups"]["path"], "backup.log") 
     backup_path = config['backups']['path'] + f'/{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
     retention_count = config['backups']['retention_count']
 
@@ -56,7 +66,7 @@ if __name__ == "__main__":
         if key == 'backups':
             continue
 
-        print(f"Starting backup for {key}...") 
+        log(f"Starting backup for {key}...", log_path)
 
         path = os.path.abspath(value["path"])
         
@@ -74,15 +84,17 @@ if __name__ == "__main__":
         if docker:
             os.system(f"docker compose -f {path}/docker-compose.yml down")
 
-        print(f"Creating tar file for {key}...")
+        log(f"Creating tar file for {key}...", log_path)
+
         tar_file = create_tar_file(tar_name, files)
-        print(f"Tar file for {key} created")
+
+        log(f"Tar file for {key} created", log_path)
 
         if docker:
             os.system(f"docker compose -f {path}/docker-compose.yml up -d")
 
-        print(f"Backup for {key} completed")
+        log(f"Backup for {key} completed", log_path)
 
-    print("Cleaning up backups...")
+    log("Cleaning up backups...", log_path)
     cleanup_backups(config['backups']['path'], retention_count)
-    print("Backups cleaned up")
+    log("Backups cleaned up", log_path)
