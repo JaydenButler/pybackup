@@ -1,0 +1,18 @@
+[backups]
+path = '/home/user/backups'
+retention_count = 7
+
+[example]
+path = '/home/user/example'
+files = [
+    'docker-compose.yml',
+    'data',
+    'letsencrypt',
+]
+
+[example2]
+path = '/home/user/example2'
+files = [
+    '*'
+]
+docker = true
